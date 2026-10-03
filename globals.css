@@ -1,0 +1,266 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: "Triglavian";
+  src: url("/fonts/Triglavian-Completed.otf") format("opentype");
+  font-display: swap;
+}
+
+:root {
+  --font-barlow: "Barlow", sans-serif;
+  --font-barlow-condensed: "Barlow Condensed", sans-serif;
+  --font-space-mono: "Space Mono", monospace;
+  --background: var(--color-abyss);
+  --foreground: #e2e8ed;
+  --card: var(--color-panel);
+  --card-foreground: var(--foreground);
+  --popover: var(--color-panel);
+  --popover-foreground: var(--foreground);
+  --primary: var(--color-capsuleer);
+  --primary-foreground: var(--color-abyss);
+  --secondary: var(--color-panel-elevated);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--color-panel-elevated);
+  --muted-foreground: oklch(0.55 0.04 210);
+  --accent: var(--color-scan);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: var(--foreground);
+  --border: #1e3a50;
+  --input: var(--color-panel-elevated);
+  --ring: var(--color-capsuleer);
+  --chart-1: var(--color-capsuleer);
+  --chart-2: var(--color-scan);
+  --chart-3: #4acff2;
+  --chart-4: #71e452;
+  --chart-5: #ff4466;
+  --radius: 0rem;
+  --sidebar: var(--color-panel);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--color-capsuleer);
+  --sidebar-primary-foreground: var(--color-abyss);
+  --sidebar-accent: var(--color-panel-elevated);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--color-capsuleer);
+}
+
+@theme inline {
+  --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, "Courier New", monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: max(0px, calc(var(--radius) - 4px));
+  --radius-md: max(0px, calc(var(--radius) - 2px));
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@source inline("text-security-{0,1,2,3,4,5,6,7,8,9,10}");
+
+@theme {
+  --color-security-10: #2c75e1;
+  --color-security-9: #399aeb;
+  --color-security-8: #4ecef8;
+  --color-security-7: #60dba3;
+  --color-security-6: #71e754;
+  --color-security-5: #f5ff83;
+  --color-security-4: #dc6c06;
+  --color-security-3: #ce440f;
+  --color-security-2: #bb1116;
+  --color-security-1: #731f1f;
+  --color-security-0: #8d3163;
+
+  --color-abyss: #070d12;
+  --color-panel: #0e1a24;
+  --color-panel-elevated: #1a3545;
+  --color-capsuleer: #c08a1e;
+  --color-scan: #2e6090;
+  --font-condensed: "Barlow Condensed", sans-serif;
+  --font-triglavian: "Triglavian", var(--font-barlow), sans-serif;
+
+  --text-2xs: 11px;
+  --text-3xs: 10px;
+
+  --color-hostile: #ff1a1a;
+
+  --z-index-hud: 10;
+  --z-index-panel: 40;
+  --z-index-overlay: 50;
+  --z-index-hovercard: 1000;
+  --z-index-blocker: 9999;
+}
+
+@keyframes npc-bracket-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--muted);
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--muted);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  .btn-glass {
+    @apply bg-panel text-foreground/70 hover:bg-panel-elevated hover:text-foreground border border-border hover:border-capsuleer/50 cursor-pointer;
+  }
+  .panel-glass {
+    @apply bg-panel border border-border py-3 gap-3;
+  }
+}
+
+@utility text-fg-strong {
+  color: color-mix(in oklab, var(--color-foreground) 80%, transparent);
+}
+@utility text-fg-secondary {
+  color: color-mix(in oklab, var(--color-foreground) 65%, transparent);
+}
+@utility text-fg-muted {
+  color: color-mix(in oklab, var(--color-foreground) 50%, transparent);
+}
+@utility text-fg-faint {
+  color: color-mix(in oklab, var(--color-foreground) 35%, transparent);
+}
+@utility text-fg-subtle {
+  color: color-mix(in oklab, var(--color-foreground) 25%, transparent);
+}
+
+@utility bg-elevated {
+  background-color: color-mix(in oklab, #fff 10%, transparent);
+}
+@utility bg-elevated-subtle {
+  background-color: color-mix(in oklab, #fff 5%, transparent);
+}
+
+.mobile-block {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-block {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-index-blocker);
+    align-items: center;
+    justify-content: center;
+    background: var(--background);
+    color: var(--foreground);
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .mobile-block-content h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .mobile-block-content p {
+    font-size: 1rem;
+    opacity: 0.7;
+    margin-bottom: 0.5rem;
+  }
+
+  .app-content {
+    display: none;
+  }
+}
+
+[data-collapsed="true"] .btn-label {
+  display: none;
+}
+
+[data-collapsed="true"] [data-slot="button"][data-size="lg"]:has(> .btn-label) {
+  padding-inline: 0.75rem;
+}
+
+.w-color-sketch .w-color-editable-input {
+  --editable-input-label-color: color-mix(
+    in oklab,
+    var(--color-foreground) 50%,
+    transparent
+  ) !important;
+  --editable-input-box-shadow: 0 0 0 1px var(--border) inset !important;
+  --editable-input-color: var(--color-foreground) !important;
+  font-family: var(--font-mono);
+}
+
+.w-color-sketch .w-color-editable-input label {
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em;
+}
+
+.w-color-sketch .w-color-editable-input input:focus-visible {
+  outline: 1px solid var(--color-capsuleer);
+  outline-offset: -1px;
+}
