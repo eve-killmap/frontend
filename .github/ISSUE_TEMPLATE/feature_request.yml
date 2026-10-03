@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest something new or a change to how EVE Killmap works.
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggestions and feedback are always welcome. The most useful requests start from a problem rather than a specific control.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem you are trying to solve
+      description: Or the question you want the site to answer.
+    validations:
+      required: true
+  - type: textarea
+    id: audience
+    attributes:
+      label: How this would be useful to other users
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Optional. If you have an idea of how it could work or look, describe it here.
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Links, mock-ups, or examples from other tools.

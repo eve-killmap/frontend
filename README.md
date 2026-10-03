@@ -18,8 +18,9 @@ When reporting bugs, be sure to include the following:
 - What you expected to happen
 - What actually happened
 - Browser and operating system
-- Screenshot/video, if applicable
+- Browser console errors, if applicable
 - Page URL or share link (captures the system, filters, and time range)
+- Screenshot/video, if applicable
 
 When requesting features, be sure to include the following:
 

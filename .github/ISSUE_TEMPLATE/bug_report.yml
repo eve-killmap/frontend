@@ -1,0 +1,80 @@
+name: Bug report
+description: Something on EVE Killmap is broken or behaves unexpectedly.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue/problem with EVE Killmap.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does it happen?
+      options:
+        - Universe map
+        - System view
+        - Both
+        - Somewhere else (describe below)
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did
+      description: The steps that lead to the problem, in order.
+      placeholder: |
+        1. Open the Jita system view
+        2. Open Settings and change the default kill colour
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Page URL or share link
+      description: Please include a share link, as it captures the system, filters, and time range you were looking at.
+      placeholder: https://eve-killmap.com/...
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      placeholder: Firefox 131, Chrome 129, Safari 18, ...
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: Windows 11, macOS 15, Ubuntu 24.04, ...
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Browser console errors
+      description: Paste browser console errors here, if any. Open the console with F12 or Ctrl+Shift+I, then click the "Console" tab.
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshot or video
+      description: Drag and drop screenshots or videos here if the problem is visual.
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Whether it happens every time, GPU or display details for rendering problems, etc.
