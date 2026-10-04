@@ -2,9 +2,11 @@ import { useRegisterIcon } from "@/hooks/system/use-register-icon";
 import { StargateData } from "@/lib/schema/system-schema";
 import { useIconLayout } from "@/stores/system/icon-layout-store";
 import { Icon } from "./icon";
-import { useLayoutEffect, useMemo } from "react";
+import { useCallback, useLayoutEffect, useMemo } from "react";
 import { addIcon } from "@/stores/system/icon-store";
 import { getLabel } from "@/stores/system/system-object-name-store";
+import { navigateTo } from "@/lib/navigation-functions";
+import { slugify } from "@/lib/formatting/slugify";
 
 const STARGATE_ICON = 4;
 const DISRUPTED_STARGATE_ICON = 5;
@@ -32,13 +34,19 @@ export function StargateIcon({
     return { position, label };
   }, [stargateData]);
 
+  const jump = useCallback(
+    () => navigateTo?.(`/${slugify(stargateData.destName)}`),
+    [stargateData.destName],
+  );
+
   useLayoutEffect(
     () =>
       addIcon(stargateData.stargateID, {
         iconID: disrupted ? DISRUPTED_STARGATE_ICON : STARGATE_ICON,
         position,
+        activate: jump,
       }),
-    [stargateData, disrupted, position],
+    [stargateData, disrupted, position, jump],
   );
 
   useRegisterIcon({
@@ -57,6 +65,7 @@ export function StargateIcon({
       hoverColor={hoverColor}
       visible={visible}
       label={label}
+      onDoubleClick={jump}
     />
   );
 }

@@ -3,12 +3,13 @@ import { sortObjectIDs } from "./system-object-name-store";
 type IconItem = {
   iconID: number;
   position: [number, number, number];
+  activate?: () => void;
 };
 
 const icons = new Map<number, IconItem>();
 
-export function addIcon(id: number, { iconID, position }: IconItem) {
-  icons.set(id, { iconID, position });
+export function addIcon(id: number, { iconID, position, activate }: IconItem) {
+  icons.set(id, { iconID, position, activate });
 }
 
 export function clearIcons() {
@@ -19,6 +20,7 @@ export interface RegisteredIcon {
   id: number;
   iconID: number;
   position: [number, number, number];
+  activate?: () => void;
 }
 
 export function getAllIcons(): RegisteredIcon[] {

@@ -32,6 +32,19 @@ function seed() {
   });
 }
 
+describe("icon-store activate", () => {
+  it("carries an icon's activate callback through to lookups", () => {
+    seed();
+    const activate = () => undefined;
+    addIcon(1, { iconID: 4, position: [0, 0, 0], activate });
+    addIcon(2, { iconID: 4, position: [0, 0, 0] });
+    const [a, b] = getIconsByIDs([1, 2]);
+    expect(a.activate).toBe(activate);
+    expect(b.activate).toBeUndefined();
+    clearIcons();
+  });
+});
+
 describe("icon-store clearIcons", () => {
   it("empties the registry so stale cross-system icons don't leak", () => {
     seed();

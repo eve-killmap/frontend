@@ -2,7 +2,8 @@ import { Html } from "@react-three/drei";
 import { RefObject, useContext, useEffect, useMemo, useRef } from "react";
 import { useHoverListStore } from "@/stores/system/hover-list-store";
 import { useHidden } from "@/stores/system/hidden-store";
-import { getIconsByIDs } from "@/stores/system/icon-store";
+import { getIconsByIDs, type RegisteredIcon } from "@/stores/system/icon-store";
+import { useClickGate } from "@/hooks/use-click-gate";
 import { getIconURL } from "@/lib/eve/icon-url";
 import { ControlsContext } from "@/components/system/camera-context";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -10,9 +11,52 @@ import * as THREE from "three";
 import { useFloatingOriginStore } from "@/stores/system/floating-origin-store";
 import { getLabel } from "@/stores/system/system-object-name-store";
 
-export function HoverListOverlay() {
+function HoverListRow({
+  icon,
+  onDone,
+}: {
+  icon: RegisteredIcon;
+  onDone: () => void;
+}) {
   const controlsRef = useContext(ControlsContext);
+  const gate = useClickGate(
+    () => {
+      controlsRef?.animateTo(icon.position);
+      onDone();
+    },
+    icon.activate
+      ? () => {
+          onDone();
+          icon.activate?.();
+        }
+      : undefined,
+  );
 
+  return (
+    <li
+      className="flex flex-nowrap items-center gap-2 px-2 py-1 border-b last:border-b-0 cursor-pointer hover:bg-panel-elevated whitespace-nowrap"
+      onClick={(e) => {
+        e.stopPropagation();
+        gate.click(e.detail);
+      }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        gate.doubleClick();
+      }}
+    >
+      <img
+        src={getIconURL(icon.iconID)}
+        className="h-4 w-4 opacity-90"
+        alt=""
+      />
+      <span className="pr-1 text-sm leading-none whitespace-nowrap">
+        {getLabel(icon.id)}
+      </span>
+    </li>
+  );
+}
+
+export function HoverListOverlay() {
   const activeId = useHoverListStore((s) => s.activeId);
   const anchor = useHoverListStore((s) => s.anchor);
   const clear = useHoverListStore((s) => s.clear);
@@ -65,24 +109,7 @@ export function HoverListOverlay() {
 
           <ul className="max-h-56 overflow-auto w-max">
             {hiddenIcons.map((icon) => (
-              <li
-                key={icon.id}
-                className="flex flex-nowrap items-center gap-2 px-2 py-1 border-b last:border-b-0 cursor-pointer hover:bg-panel-elevated whitespace-nowrap"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  controlsRef?.animateTo(icon.position);
-                  clear();
-                }}
-              >
-                <img
-                  src={getIconURL(icon.iconID)}
-                  className="h-4 w-4 opacity-90"
-                  alt=""
-                />
-                <span className="pr-1 text-sm leading-none whitespace-nowrap">
-                  {getLabel(icon.id)}
-                </span>
-              </li>
+              <HoverListRow key={icon.id} icon={icon} onDone={clear} />
             ))}
           </ul>
         </div>
