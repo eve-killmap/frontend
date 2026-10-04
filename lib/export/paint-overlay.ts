@@ -25,10 +25,18 @@ export interface PaintSize {
 }
 
 export type ExportOverlay =
-  | { kind: "map"; legend: LegendSpec[]; scale: number }
+  | {
+      kind: "map";
+      title: string;
+      subtitle: string | null;
+      legend: LegendSpec[];
+      timeLabel: string;
+      scale: number;
+    }
   | {
       kind: "system";
       header: SystemHeaderSpec;
+      legend?: LegendSpec[];
       timeLabel: string;
       scale: number;
       nameFont?: string;
@@ -39,6 +47,8 @@ export const LEGEND_WIDTH = 200;
 export const WATERMARK = "eve-killmap.com";
 
 const PAD = 12;
+const CAPTION_LINE = 11;
+const CAPTION_GAP = 8;
 const TITLE_LINE = 14;
 const LABEL_LINE = 13;
 const BAR_H = 8;
@@ -67,6 +77,30 @@ export function wrapText(
   return lines.length > 0 ? lines : [text];
 }
 
+interface SwatchCell {
+  hex: string;
+  lines: string[];
+}
+
+function swatchRows(
+  ctx: PaintCtx,
+  block: Extract<LegendSpec, { type: "swatches" }>,
+  innerWidthPx: number,
+  s: number,
+): { cells: SwatchCell[]; lines: number }[] {
+  ctx.font = `${11 * s}px ${EXPORT_FONTS.sans}`;
+  const labelW = innerWidthPx / block.columns - (SWATCH + 4) * s;
+  const rows: { cells: SwatchCell[]; lines: number }[] = [];
+  block.entries.forEach((entry, i) => {
+    const cell = { hex: entry.hex, lines: wrapText(ctx, entry.label, labelW) };
+    if (i % block.columns === 0) rows.push({ cells: [], lines: 0 });
+    const row = rows[rows.length - 1];
+    row.cells.push(cell);
+    row.lines = Math.max(row.lines, cell.lines.length);
+  });
+  return rows;
+}
+
 function blockHeight(
   ctx: PaintCtx,
   block: LegendSpec,
@@ -80,8 +114,11 @@ function blockHeight(
       height += 4 * s + BAR_H * s + 4 * s + LABEL_LINE * s;
       break;
     case "swatches": {
-      const rows = Math.ceil(block.entries.length / block.columns);
-      height += 2 * s + rows * SWATCH_ROW * s;
+      const lines = swatchRows(ctx, block, innerWidthPx, s).reduce(
+        (sum, row) => sum + row.lines,
+        0,
+      );
+      height += 2 * s + lines * SWATCH_ROW * s;
       break;
     }
     case "text":
@@ -97,8 +134,8 @@ function blockHeight(
 
 function paintLegend(
   ctx: PaintCtx,
-  size: PaintSize,
   legend: LegendSpec[],
+  bottom: number,
   s: number,
 ) {
   const width = LEGEND_WIDTH * s;
@@ -108,7 +145,7 @@ function paintLegend(
     BLOCK_GAP * s * (legend.length - 1);
   const height = contentH + 2 * PAD * s;
   const x = MARGIN * s;
-  const y = size.height - MARGIN * s - height;
+  const y = bottom - height;
 
   ctx.globalAlpha = 0.9;
   ctx.fillStyle = EXPORT_THEME.panel;
@@ -151,20 +188,19 @@ function paintLegend(
       cy += LABEL_LINE * s;
     } else if (block.type === "swatches") {
       cy += 2 * s;
-      ctx.font = `${11 * s}px ${EXPORT_FONTS.sans}`;
-      const columns = block.columns;
-      const colW = inner / columns;
-      block.entries.forEach((entry, i) => {
-        const col = i % columns;
-        const row = Math.floor(i / columns);
-        const ex = cx + col * colW;
-        const ey = cy + row * SWATCH_ROW * s;
-        ctx.fillStyle = entry.hex;
-        ctx.fillRect(ex, ey + 2 * s, SWATCH * s, SWATCH * s);
-        ctx.fillStyle = EXPORT_THEME.foregroundMuted;
-        ctx.fillText(entry.label, ex + (SWATCH + 4) * s, ey);
-      });
-      cy += Math.ceil(block.entries.length / columns) * SWATCH_ROW * s;
+      const colW = inner / block.columns;
+      for (const row of swatchRows(ctx, block, inner, s)) {
+        row.cells.forEach((cell, col) => {
+          const ex = cx + col * colW;
+          ctx.fillStyle = cell.hex;
+          ctx.fillRect(ex, cy + 2 * s, SWATCH * s, SWATCH * s);
+          ctx.fillStyle = EXPORT_THEME.foregroundMuted;
+          cell.lines.forEach((line, li) => {
+            ctx.fillText(line, ex + (SWATCH + 4) * s, cy + li * SWATCH_ROW * s);
+          });
+        });
+        cy += row.lines * SWATCH_ROW * s;
+      }
     } else if (block.type === "text" && block.note) {
       ctx.font = `${11 * s}px ${EXPORT_FONTS.sans}`;
       ctx.fillStyle = EXPORT_THEME.foregroundMuted;
@@ -225,6 +261,45 @@ function paintSegments(
     x += w + gap;
   }
   setLetterSpacing(ctx, "0px");
+}
+
+function headerOrigin(size: PaintSize, s: number): { cx: number; top: number } {
+  return { cx: size.width / 2, top: MARGIN * s };
+}
+
+function paintMapHeader(
+  ctx: PaintCtx,
+  size: PaintSize,
+  title: string,
+  subtitle: string | null,
+  s: number,
+) {
+  const line1: Segment[] = [
+    {
+      text: title,
+      font: `bold ${24 * s}px ${EXPORT_FONTS.sans}`,
+      color: EXPORT_THEME.foreground,
+    },
+  ];
+  const line2: Segment[] = subtitle
+    ? [
+        {
+          text: subtitle.toUpperCase(),
+          font: `${12 * s}px ${EXPORT_FONTS.sans}`,
+          color: EXPORT_THEME.foregroundMuted,
+          letterSpacing: `${12 * s * TRACKING_WIDEST_EM}px`,
+        },
+      ]
+    : [];
+  const { cx, top } = headerOrigin(size, s);
+  let baseline = top + (8 + NAME_BASELINE) * s;
+  paintSegments(ctx, line1, cx, baseline, 0);
+  if (line2.length > 0) {
+    baseline += (NAME_LINE - NAME_BASELINE + 12) * s;
+    paintSegments(ctx, line2, cx, baseline, 0);
+  }
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
 }
 
 function paintSystemHeader(
@@ -312,21 +387,7 @@ function paintSystemHeader(
   const nameW = focus ? segmentsWidth(ctx, focusName, focusGap) : 0;
   const line4W = labelW + iconW + nameW;
 
-  const widest = Math.max(
-    segmentsWidth(ctx, line1, NAME_GAP * s),
-    segmentsWidth(ctx, line2, 0),
-    segmentsWidth(ctx, line3, 0),
-    line4W,
-  );
-  const stripW = widest + 24 * s;
-  const stripH = (NAME_LINE + META_LINE * (focus ? 3 : 2) + 16) * s;
-  const cx = size.width / 2;
-  const top = MARGIN * s;
-
-  ctx.globalAlpha = 0.6;
-  ctx.fillStyle = EXPORT_THEME.strip;
-  ctx.fillRect(cx - stripW / 2, top, stripW, stripH);
-  ctx.globalAlpha = 1;
+  const { cx, top } = headerOrigin(size, s);
 
   let baseline = top + (8 + NAME_BASELINE) * s;
   paintSegments(ctx, line1, cx, baseline, NAME_GAP * s);
@@ -383,10 +444,15 @@ export function paintOverlay(
 ): void {
   const s = overlay.scale;
   if (overlay.kind === "map") {
-    if (overlay.legend.length > 0) paintLegend(ctx, size, overlay.legend, s);
+    paintMapHeader(ctx, size, overlay.title, overlay.subtitle, s);
   } else {
     paintSystemHeader(ctx, size, overlay, s);
-    paintTimeCaption(ctx, size, overlay.timeLabel, s);
   }
+  const legend = overlay.legend ?? [];
+  if (legend.length > 0) {
+    const bottom = size.height - (MARGIN + CAPTION_LINE + CAPTION_GAP) * s;
+    paintLegend(ctx, legend, bottom, s);
+  }
+  paintTimeCaption(ctx, size, overlay.timeLabel, s);
   paintWatermark(ctx, size, s);
 }

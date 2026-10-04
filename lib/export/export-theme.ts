@@ -3,7 +3,6 @@ export const EXPORT_THEME = {
   border: "#1e3a50",
   foreground: "#e2e8ed",
   foregroundMuted: "rgba(226, 232, 237, 0.5)",
-  strip: "#070d12",
   background: "#070d12",
 } as const;
 

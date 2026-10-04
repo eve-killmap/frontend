@@ -42,25 +42,64 @@ function fakeCtx() {
 }
 
 const SIZE = { width: 1000, height: 600 };
+const MAP = {
+  kind: "map" as const,
+  title: "New Eden",
+  subtitle: null,
+  timeLabel: "Screenshot taken 2026-09-27 14:05 UTC",
+};
+const CAPTION_RESERVE = 11 + 8;
 
 describe("paintOverlay", () => {
-  it("draws only the watermark at bottom-right when the map legend is empty", () => {
+  it("draws the map title top-centre, the time bottom-left and the watermark when the legend is empty", () => {
     const { ctx, calls } = fakeCtx();
-    paintOverlay(ctx, SIZE, { kind: "map", legend: [], scale: 2 });
+    paintOverlay(ctx, SIZE, { ...MAP, legend: [], scale: 2 });
     const texts = calls.filter((c) => c.op === "fillText");
-    expect(texts).toHaveLength(1);
-    expect(texts[0].args).toEqual([
+    expect(texts.map((t) => t.args[0])).toEqual([
+      "New Eden",
+      MAP.timeLabel,
       WATERMARK,
-      1000 - MARGIN * 2,
-      600 - MARGIN * 2,
     ]);
+    const [title, time, mark] = texts;
+    expect(title.font).toContain("bold 48px");
+    expect(title.font).toContain('"Barlow"');
+    expect(title.baseline).toBe("alphabetic");
+    expect(title.args[1]).toBe(500 - ("New Eden".length * 6) / 2);
+    expect((title.args[2] as number) < 100).toBe(true);
+    expect(time.font).toContain('"Space Mono"');
+    expect(time.args.slice(1)).toEqual([MARGIN * 2, 600 - MARGIN * 2]);
+    expect(mark.args.slice(1)).toEqual([1000 - MARGIN * 2, 600 - MARGIN * 2]);
+    expect(calls.some((c) => c.op === "fillRect")).toBe(false);
     expect(calls.some((c) => c.op === "strokeRect")).toBe(false);
   });
 
-  it("draws a scaled legend panel at bottom-left with the gradient stops", () => {
+  it("paints the colour mode and overlay as an upper-case second line", () => {
+    const { ctx, calls } = fakeCtx();
+    paintOverlay(ctx, SIZE, {
+      ...MAP,
+      subtitle: "Kill Activity · Hot Areas",
+      legend: [],
+      scale: 1,
+    });
+    const texts = calls.filter((c) => c.op === "fillText");
+    expect(texts.map((t) => t.args[0])).toEqual([
+      "New Eden",
+      "KILL ACTIVITY · HOT AREAS",
+      MAP.timeLabel,
+      WATERMARK,
+    ]);
+    const [title, sub] = texts;
+    expect(sub.font).toContain("12px");
+    expect(sub.args[1]).toBe(
+      500 - ("KILL ACTIVITY · HOT AREAS".length * 6) / 2,
+    );
+    expect((sub.args[2] as number) > (title.args[2] as number)).toBe(true);
+  });
+
+  it("draws a scaled legend panel at bottom-left, above the time caption, with the gradient stops", () => {
     const { ctx, calls, gradient } = fakeCtx();
     paintOverlay(ctx, SIZE, {
-      kind: "map",
+      ...MAP,
       scale: 2,
       legend: [
         {
@@ -72,25 +111,37 @@ describe("paintOverlay", () => {
         },
       ],
     });
-    const panel = calls.find((c) => c.op === "fillRect")!;
+    const panel = calls.find(
+      (c) => c.op === "fillRect" && c.args[2] === LEGEND_WIDTH * 2,
+    )!;
     expect(panel.args[0]).toBe(MARGIN * 2);
-    expect(panel.args[2]).toBe(LEGEND_WIDTH * 2);
     const [, y, , h] = panel.args as number[];
-    expect(y + h).toBe(600 - MARGIN * 2);
+    expect(y + h).toBe(600 - MARGIN * 2 - CAPTION_RESERVE * 2);
     expect(calls.some((c) => c.op === "strokeRect")).toBe(true);
     expect(gradient.addColorStop).toHaveBeenCalledTimes(ACTIVITY_HEX.length);
     const labels = calls
       .filter((c) => c.op === "fillText")
       .map((c) => c.args[0]);
     expect(labels).toEqual(
-      expect.arrayContaining(["Kills (all-time)", "0", "99", WATERMARK]),
+      expect.arrayContaining([
+        "New Eden",
+        "Kills (all-time)",
+        "0",
+        "99",
+        MAP.timeLabel,
+        WATERMARK,
+      ]),
     );
+    const time = calls.find(
+      (c) => c.op === "fillText" && c.args[0] === MAP.timeLabel,
+    )!;
+    expect(time.args[2]).toBe(600 - MARGIN * 2);
   });
 
   it("draws swatches once per entry", () => {
     const { ctx, calls } = fakeCtx();
     paintOverlay(ctx, SIZE, {
-      kind: "map",
+      ...MAP,
       scale: 1,
       legend: [
         {
@@ -111,7 +162,7 @@ describe("paintOverlay", () => {
   it("lays out a single-column swatch block in one growing column", () => {
     const { ctx, calls } = fakeCtx();
     paintOverlay(ctx, SIZE, {
-      kind: "map",
+      ...MAP,
       scale: 1,
       legend: [
         {
@@ -137,10 +188,61 @@ describe("paintOverlay", () => {
     expect(swatchRects[1][1]).toBeLessThan(swatchRects[2][1]);
   });
 
+  it("wraps a long swatch label onto further lines and grows the row", () => {
+    const short = fakeCtx();
+    paintOverlay(short.ctx, SIZE, {
+      ...MAP,
+      scale: 1,
+      legend: [
+        {
+          type: "swatches",
+          title: "Kill colors",
+          columns: 1,
+          entries: [{ label: "Rifter", hex: "#ff0000" }],
+        },
+      ],
+    });
+    const shortPanel = short.calls.find(
+      (c) => c.op === "fillRect" && c.args[2] === LEGEND_WIDTH,
+    )!.args as number[];
+
+    const { ctx, calls } = fakeCtx();
+    const long = "Combat Battlecruiser, Ferox, Rifter, Punisher, Merlin";
+    paintOverlay(ctx, SIZE, {
+      ...MAP,
+      scale: 1,
+      legend: [
+        {
+          type: "swatches",
+          title: "Kill colors",
+          columns: 1,
+          entries: [
+            { label: long, hex: "#ff0000" },
+            { label: "All others", hex: "#88ccff" },
+          ],
+        },
+      ],
+    });
+    const panel = calls.find(
+      (c) => c.op === "fillRect" && c.args[2] === LEGEND_WIDTH,
+    )!.args as number[];
+    const texts = calls.filter((c) => c.op === "fillText");
+    const lines = texts
+      .map((t) => t.args as [string, number, number])
+      .filter(([text]) => long.includes(text) && text !== long);
+    expect(lines.length).toBeGreaterThan(1);
+    expect(lines.map(([text]) => text).join(" ")).toBe(long);
+    expect(new Set(lines.map(([, x]) => x)).size).toBe(1);
+    expect(lines[1][2] - lines[0][2]).toBe(14);
+    const others = texts.find((t) => t.args[0] === "All others")!;
+    expect(others.args[2]).toBe(lines[lines.length - 1][2] + 14);
+    expect(panel[3] - shortPanel[3]).toBe(lines.length * 14);
+  });
+
   it("wraps a long title into multiple lines", () => {
     const { ctx, calls } = fakeCtx();
     paintOverlay(ctx, SIZE, {
-      kind: "map",
+      ...MAP,
       scale: 1,
       legend: [
         {
@@ -155,7 +257,14 @@ describe("paintOverlay", () => {
     const titleTexts = calls
       .filter((c) => c.op === "fillText")
       .map((c) => c.args[0] as string)
-      .filter((t) => t !== "0" && t !== "99" && t !== WATERMARK);
+      .filter(
+        (t) =>
+          t !== "0" &&
+          t !== "99" &&
+          t !== WATERMARK &&
+          t !== MAP.title &&
+          t !== MAP.timeLabel,
+      );
     expect(titleTexts).toEqual([
       "Kills matching filter",
       "(2026-09-01 to 2026-09-27)",
@@ -165,7 +274,7 @@ describe("paintOverlay", () => {
   it("draws a text block's note as its own fillText line", () => {
     const { ctx, calls } = fakeCtx();
     paintOverlay(ctx, SIZE, {
-      kind: "map",
+      ...MAP,
       scale: 1,
       legend: [
         {
@@ -185,7 +294,7 @@ describe("paintOverlay", () => {
     );
   });
 
-  it("draws the known-space header segments centred on the strip, the time bottom-left, and the watermark", () => {
+  it("draws the known-space header segments centred at the top with no backdrop, the time bottom-left, and the watermark", () => {
     const { ctx, calls } = fakeCtx();
     paintOverlay(ctx, SIZE, {
       kind: "system",
@@ -231,7 +340,7 @@ describe("paintOverlay", () => {
     expect(texts[3].args[1]).toBe(500 - ("4 CONNECTIONS".length * 6) / 2);
     expect(texts[4].args.slice(1)).toEqual([MARGIN, 600 - MARGIN]);
     expect(texts[5].args.slice(1)).toEqual([1000 - MARGIN, 600 - MARGIN]);
-    expect(calls.filter((c) => c.op === "fillRect")).toHaveLength(1);
+    expect(calls.some((c) => c.op === "fillRect")).toBe(false);
   });
 
   it("draws the wormhole header with class, security, and effect in their colours", () => {
@@ -289,17 +398,41 @@ describe("paintOverlay", () => {
     connections: "4 connections",
   };
 
-  it("paints a centered-object line with its icon under the connections and grows the strip", () => {
-    const plain = fakeCtx();
-    paintOverlay(plain.ctx, SIZE, {
+  it("paints a system legend above the time caption when one is given", () => {
+    const { ctx, calls } = fakeCtx();
+    paintOverlay(ctx, SIZE, {
       kind: "system",
       scale: 1,
       header: jita,
+      legend: [
+        {
+          type: "swatches",
+          title: "Kill colors",
+          columns: 1,
+          entries: [
+            { label: "Frigate", hex: "#0000ff" },
+            { label: "All others", hex: "#88ccff" },
+          ],
+        },
+      ],
       timeLabel: "t",
     });
-    const plainStrip = plain.calls.find((c) => c.op === "fillRect")!
-      .args as number[];
+    const panel = calls.find(
+      (c) => c.op === "fillRect" && c.args[2] === LEGEND_WIDTH,
+    )!;
+    const [x, y, , h] = panel.args as number[];
+    expect(x).toBe(MARGIN);
+    expect(y + h).toBe(600 - MARGIN - CAPTION_RESERVE);
+    const texts = calls
+      .filter((c) => c.op === "fillText")
+      .map((c) => c.args[0]);
+    expect(texts).toEqual(
+      expect.arrayContaining(["Kill colors", "Frigate", "All others", "t"]),
+    );
+    expect(calls.filter((c) => c.op === "fillRect")).toHaveLength(1 + 2);
+  });
 
+  it("paints a centered-object line with its icon under the connections", () => {
     const { ctx, calls } = fakeCtx();
     const icon = {} as CanvasImageSource;
     paintOverlay(ctx, SIZE, {
@@ -335,8 +468,6 @@ describe("paintOverlay", () => {
     expect((texts[4].args[2] as number) > (texts[3].args[2] as number)).toBe(
       true,
     );
-    const strip = calls.find((c) => c.op === "fillRect")!.args as number[];
-    expect(strip[3]).toBeGreaterThan(plainStrip[3]);
   });
 
   it("paints a nearest-object line with its distance and no icon when none is given", () => {

@@ -42,7 +42,7 @@ export const SharePanel = React.memo(function SharePanel({
   const conditions = useFilterConditions();
   const ref = useDismissablePanel(open, onToggle);
   const slug = useMemo(() => slugify(systemData.name), [systemData.name]);
-  const sysExport = useSystemExport(systemData, typeData.typeRadii, slug);
+  const sysExport = useSystemExport(systemData, typeData, slug);
 
   const [includeSettings, setIncludeSettings] = useState(false);
   const [includeCamera, setIncludeCamera] = useState(true);

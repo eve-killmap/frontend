@@ -26,13 +26,7 @@ import { fetchSovereigntyCached } from "@/lib/api/sovereignty";
 import { fetchSystemsCached } from "@/lib/api/systems";
 import { useMapSystemsStore } from "@/stores/map/map-systems-store";
 import { setOriginatingMap } from "@/lib/map/originating-map";
-
-const MAP_TITLES: Record<string, string> = {
-  "new-eden": "New Eden",
-  anoikis: "Anoikis",
-  "abyssal-deadspace": "Abyssal Deadspace",
-  tutorials: "Tutorials",
-};
+import { mapTitle } from "@/lib/map/map-title";
 
 interface MapLoaderProps {
   mapType: string;
@@ -93,7 +87,7 @@ async function fetchMapDataUncached(mapType: string): Promise<MapDataResult> {
 }
 
 export function MapLoader({ mapType }: MapLoaderProps) {
-  useDocumentTitle(MAP_TITLES[mapType] ?? "New Eden");
+  useDocumentTitle(mapTitle(mapType));
 
   const [data, setData] = useState<MapDataResult | null>(null);
   const [error, setError] = useState<Error | null>(null);

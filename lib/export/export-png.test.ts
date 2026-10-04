@@ -2,7 +2,14 @@ import { describe, it, expect, vi } from "vitest";
 import { exportPng } from "./export-png";
 import type { ExportOverlay } from "./paint-overlay";
 
-const overlay: ExportOverlay = { kind: "map", legend: [], scale: 2 };
+const overlay: ExportOverlay = {
+  kind: "map",
+  title: "New Eden",
+  subtitle: null,
+  legend: [],
+  timeLabel: "t",
+  scale: 2,
+};
 
 describe("exportPng", () => {
   it("rejects with 'Scene not ready' when no capture bridge is registered and downloads nothing", async () => {

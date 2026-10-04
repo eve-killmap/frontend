@@ -12,7 +12,10 @@ import { useMapSystemsStore } from "@/stores/map/map-systems-store";
 import { useSovStore } from "@/stores/map/sov-store";
 import { usePlaybackStore } from "@/stores/system/playback-store";
 import { useKillStore } from "@/stores/kill-store";
-import { useSystemSettingsStore } from "@/stores/system/system-settings-store";
+import {
+  useSystemSettingsStore,
+  getSystemSettingsState,
+} from "@/stores/system/system-settings-store";
 import { useGlobalSettingsStore } from "@/stores/global-settings-store";
 import { formatActivityRangeLabel } from "@/lib/map/system-kills-query";
 import { legendSpecFor } from "@/lib/export/legend-spec";
@@ -47,8 +50,15 @@ import { playbackTimeState } from "@/lib/system/playback-time-state";
 import { loadShipTypeNames } from "@/lib/eve/ship-types";
 import { findNearestObject } from "@/lib/system/find-nearest-object";
 import { isTriglavianSystem } from "@/lib/map/triglavian";
+import { mapScreenshotTitle } from "@/lib/map/map-title";
+import { mapSubtitle } from "@/lib/export/map-subtitle";
+import { killColorLegend } from "@/lib/export/kill-color-legend";
 import { HOT_MAX_FLOOR } from "@/components/map/hot/hot-sources";
-import type { SystemData, TypeRadiiData } from "@/lib/schema/system-schema";
+import type {
+  SystemData,
+  TypeData,
+  TypeRadiiData,
+} from "@/lib/schema/system-schema";
 
 export const EXPORT_SCALE = 2;
 const ERROR_MS = 4000;
@@ -175,9 +185,17 @@ export function useMapExport(mapType: string) {
           hotFloor: HOT_MAX_FLOOR,
           admAvailable,
         });
+        const now = Date.now();
         return exportPng(
-          { kind: "map", legend, scale: EXPORT_SCALE },
-          mapPngFilename(mapType, Date.now()),
+          {
+            kind: "map",
+            title: mapScreenshotTitle(mapType),
+            subtitle: mapSubtitle(effectiveMode, overlay),
+            legend,
+            timeLabel: timeLabelFor(false, now),
+            scale: EXPORT_SCALE,
+          },
+          mapPngFilename(mapType, now),
         );
       }),
     [
@@ -210,9 +228,10 @@ export function useMapExport(mapType: string) {
 
 export function useSystemExport(
   systemData: SystemData,
-  typeRadii: TypeRadiiData,
+  typeData: TypeData,
   slug: string,
 ) {
+  const typeRadii = typeData.typeRadii;
   const { busy, error, run } = useAsyncExport();
   const filtered = useKillStore((s) => s.filteredKills);
   const maxKills = useSystemSettingsStore((s) => s.maxKills);
@@ -247,6 +266,7 @@ export function useSystemExport(
               ),
               focus,
             },
+            legend: killColorLegend(getSystemSettingsState(), typeData),
             timeLabel: timeLabelFor(playbackActive, ms),
             scale: EXPORT_SCALE,
             nameFont: useTrig
@@ -256,7 +276,7 @@ export function useSystemExport(
           systemPngFilename(slug, ms),
         );
       }),
-    [run, systemData, typeRadii, slug, triglavianFont],
+    [run, systemData, typeData, typeRadii, slug, triglavianFont],
   );
 
   const exportCsvNow = useCallback(
