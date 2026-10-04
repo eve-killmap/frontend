@@ -65,7 +65,7 @@ export function StargateIcon({
       hoverColor={hoverColor}
       visible={visible}
       label={label}
-      onDoubleClick={jump}
+      onContextMenu={jump}
     />
   );
 }

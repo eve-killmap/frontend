@@ -85,76 +85,130 @@ function PanelList({ panels }: { panels: PanelEntry[] }) {
 export function ControlsTab() {
   return (
     <div className="space-y-8">
-      <div className="grid md:grid-cols-2 gap-8">
-        <Section title="Map View">
-          <CtrlRow
-            visual={
-              <>
-                <MouseIcon left />
-                <span className="text-fg-faint text-xs">Left drag</span>
-              </>
-            }
-            label="Pan the map"
-          />
-          <CtrlRow
-            visual={
-              <>
-                <MouseIcon wheel />
-                <span className="text-fg-faint text-xs">Scroll</span>
-              </>
-            }
-            label="Zoom in / out"
-          />
-          <CtrlRow
-            visual={
-              <>
-                <MouseIcon left />
-                <span className="text-fg-faint text-xs">Click system</span>
-              </>
-            }
-            label="Open that system's 3D kill view"
-          />
-        </Section>
+      <Section title="Map View">
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon left />
+                  <span className="text-fg-faint text-xs">Left drag</span>
+                </>
+              }
+              label="Pan the map"
+            />
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon wheel />
+                  <span className="text-fg-faint text-xs">Scroll</span>
+                </>
+              }
+              label="Zoom in / out"
+            />
+          </div>
+          <div>
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon left />
+                  <span className="text-fg-faint text-xs">
+                    Left click system
+                  </span>
+                </>
+              }
+              label="Open system's page"
+            />
+          </div>
+        </div>
+      </Section>
 
-        <Section title="System View (Mouse)">
-          <CtrlRow
-            visual={
-              <>
-                <MouseIcon left />
-                <span className="text-fg-faint text-xs">Left drag</span>
-              </>
-            }
-            label="Orbit camera around the system"
-          />
-          <CtrlRow
-            visual={
-              <>
-                <MouseIcon right />
-                <span className="text-fg-faint text-xs">Right drag</span>
-              </>
-            }
-            label="Pan / strafe camera"
-          />
-          <CtrlRow
-            visual={
-              <>
-                <MouseIcon wheel />
-                <span className="text-fg-faint text-xs">Scroll</span>
-              </>
-            }
-            label="Zoom in / out"
-          />
-          <CtrlRow
-            visual={
-              <>
-                <MouseIcon left />
-                <span className="text-fg-faint text-xs">Hover kill</span>
-              </>
-            }
-            label="Show kill details card"
-          />
-        </Section>
-      </div>
+      <Section title="System View (Mouse)">
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon left />
+                  <span className="text-fg-faint text-xs">Left drag</span>
+                </>
+              }
+              label="Orbit camera around system"
+            />
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon right />
+                  <span className="text-fg-faint text-xs">Right drag</span>
+                </>
+              }
+              label="Pan / strafe camera"
+            />
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon wheel />
+                  <span className="text-fg-faint text-xs">Scroll</span>
+                </>
+              }
+              label="Zoom in / out"
+            />
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon />
+                  <span className="text-fg-faint text-xs">Hover kill</span>
+                </>
+              }
+              label="Show kill details"
+            />
+          </div>
+          <div>
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon left />
+                  <span className="text-fg-faint text-xs">Left click kill</span>
+                </>
+              }
+              label="Center camera on kill"
+            />
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon right />
+                  <span className="text-fg-faint text-xs">
+                    Right click kill
+                  </span>
+                </>
+              }
+              label="Open kill in zKillboard"
+            />
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon left />
+                  <span className="text-fg-faint text-xs">
+                    Left click object
+                  </span>
+                </>
+              }
+              label="Center camera on object"
+            />
+            <CtrlRow
+              visual={
+                <>
+                  <MouseIcon right />
+                  <span className="text-fg-faint text-xs">
+                    Right click stargate
+                  </span>
+                </>
+              }
+              label="Navigate to destination system"
+            />
+          </div>
+        </div>
+      </Section>
 
       <Section title="System View (Keyboard)">
         <div className="grid md:grid-cols-2 gap-x-8">

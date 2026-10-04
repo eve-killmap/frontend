@@ -15,7 +15,6 @@ import { useHoverListStore } from "@/stores/system/hover-list-store";
 import { useFloatingOriginStore } from "@/stores/system/floating-origin-store";
 import { cameraMetrics } from "@/stores/system/camera-metrics-store";
 import { worldPerPixel } from "@/lib/system/pixel-scale";
-import { useClickGate } from "@/hooks/use-click-gate";
 
 const ICON_PIXELS = 16;
 const getOrigin = () => useFloatingOriginStore.getState().origin;
@@ -45,7 +44,7 @@ interface IconProps {
   hoverColor?: [number, number, number] | string;
   visible: boolean;
   label: string;
-  onDoubleClick?: () => void;
+  onContextMenu?: () => void;
 }
 
 export const Icon = React.memo(function Icon({
@@ -55,7 +54,7 @@ export const Icon = React.memo(function Icon({
   hoverColor,
   visible,
   label,
-  onDoubleClick,
+  onContextMenu,
 }: IconProps) {
   const { gl } = useThree();
   const controlsRef = useContext(ControlsContext);
@@ -69,10 +68,6 @@ export const Icon = React.memo(function Icon({
   const toIcon = useRef(new THREE.Vector3());
   const lastVersion = useRef(-1);
   const lastOrigin = useRef<[number, number, number]>([NaN, NaN, NaN]);
-  const gate = useClickGate(
-    () => controlsRef?.animateTo(position),
-    onDoubleClick,
-  );
 
   useEffect(() => {
     gl.domElement.style.cursor = hovered ? "pointer" : "";
@@ -140,13 +135,14 @@ export const Icon = React.memo(function Icon({
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (!visible) return;
     e.stopPropagation();
-    gate.click(e.detail);
+    controlsRef?.animateTo(position);
   };
 
-  const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
-    if (!visible || !onDoubleClick) return;
+  const handleContextMenu = (e: ThreeEvent<MouseEvent>) => {
+    if (!visible || !onContextMenu) return;
     e.stopPropagation();
-    gate.doubleClick();
+    e.nativeEvent.preventDefault();
+    onContextMenu();
   };
 
   return (
@@ -159,7 +155,7 @@ export const Icon = React.memo(function Icon({
         clearDelayed();
       }}
       onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
+      onContextMenu={handleContextMenu}
       visible={visible}
       renderOrder={10}
     >
