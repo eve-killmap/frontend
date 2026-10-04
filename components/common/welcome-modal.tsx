@@ -49,9 +49,9 @@ export function WelcomeModal() {
               </DialogTitle>
             </div>
             <DialogDescription className="text-sm text-fg-secondary leading-relaxed">
-              EVE Killmap is an interactive 3D visualization of kill data across
-              New Eden. Navigate between solar systems, explore kill clusters,
-              and analyze combat activity over time.
+              EVE Killmap is an interactive map and 3D visualization of EVE Online
+              killmails. Browse systems, view kills, filter data, explore
+              historical activity, and much more.
             </DialogDescription>
           </div>
 
